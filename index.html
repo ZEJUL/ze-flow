@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZE Flow">
+<meta name="theme-color" content="#0f0f10">
+<!-- Запрет индексации поисковиками -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>ZE Flow</title>
+<style>
+  /* ===== Цвета и базовые стили ===== */
+  :root{
+    --bg:#0f0f10; --card:#1a1a1c; --card2:#222225; --line:#2c2c30;
+    --text:#f2efe9; --muted:#8e8a84; --acc:#e6d3a8; --acc-ink:#1b1812;
+    --danger:#e57368; --shadow:rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+  /* ===== Светлая тема ===== */
+  :root[data-theme="light"]{
+    --bg:#f6f3ee; --card:#ffffff; --card2:#efebe4; --line:#e0dad0;
+    --text:#1b1a18; --muted:#77716a; --acc:#94702f; --acc-ink:#ffffff;
+    --danger:#c4473b; --shadow:rgba(60,45,20,.18);
+    color-scheme:light;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+  body{padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 16px);
+    -webkit-user-select:none;user-select:none}
+  input{-webkit-user-select:text;user-select:text}
+  button{font:inherit;cursor:pointer}
+  .mt{margin-top:14px} .mt2{margin-top:24px}
+
+  /* Шапка */
+  .top{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px}
+  .brand{font-weight:700;font-size:20px;letter-spacing:.04em}
+  .brand span{color:var(--acc)}
+  .iconbtn{background:none;border:0;color:var(--muted);font-size:16px;padding:8px 6px}
+  .iconbtn.acc{color:var(--acc)}
+
+  /* Кнопки */
+  .btn{display:block;width:100%;border:0;border-radius:14px;padding:16px;
+    font-size:17px;font-weight:600;background:var(--acc);color:var(--acc-ink)}
+  .btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}
+  .btn.danger{background:none;color:var(--danger);border:1px solid var(--line)}
+  .row{display:flex;gap:10px} .row>*{flex:1}
+
+  /* Сетка выбора */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid.three{grid-template-columns:repeat(3,1fr)}
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--text);
+    border-radius:12px;padding:12px 8px;font-size:15px;min-height:54px;word-break:break-word}
+  .chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+  .chip.add{color:var(--muted);border-style:dashed;background:none}
+  .chip.del{border-color:var(--danger);color:var(--danger)}
+  .chip.sm{min-height:40px;padding:8px 10px;font-size:14px}
+
+  /* Мастер ввода */
+  .bar{height:3px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:16px}
+  .bar i{display:block;height:100%;background:var(--acc);transition:width .25s}
+  .step-title{font-size:26px;font-weight:700;margin:4px 0 6px}
+  .crumbs{color:var(--muted);font-size:13px;margin-bottom:18px;min-height:18px}
+  .label{color:var(--muted);font-size:13px;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+  .field{width:100%;background:var(--card);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:14px;font-size:17px;outline:none;-webkit-appearance:none;appearance:none}
+  .field:focus{border-color:var(--acc)}
+  .field.big{font-size:32px;font-weight:700;padding:12px 14px}
+  input[type=date].field{min-height:52px}
+  .sugg{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .preview{margin-top:20px;padding:12px;border-radius:12px;background:var(--card2);
+    font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--acc);word-break:break-word}
+
+  /* Список операций */
+  .day{color:var(--muted);font-size:13px;margin:18px 0 8px}
+  .op{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+    color:var(--text);border-radius:12px;padding:12px;margin-bottom:8px}
+  .op-top{display:flex;justify-content:space-between;gap:10px;font-weight:600}
+  .op-line{display:block;color:var(--muted);font-size:12px;margin-top:4px;word-break:break-word}
+  .empty{color:var(--muted);text-align:center;margin:60px 0}
+  .banner{background:var(--card2);border:1px solid var(--acc);color:var(--acc);border-radius:12px;
+    padding:12px;font-size:14px;margin-bottom:10px;width:100%;text-align:left}
+  .fab{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 14px);
+    box-shadow:0 10px 30px var(--shadow)}
+  .spacer{height:100px}
+
+  /* Отчёт */
+  pre.out{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;
+    font:12px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;
+    max-height:45vh;overflow:auto;-webkit-user-select:text;user-select:text}
+  .muted{color:var(--muted);font-size:14px}
+
+  /* Экран PIN */
+  .lock{display:flex;flex-direction:column;align-items:center;padding-top:12vh}
+  .dots{display:flex;gap:16px;margin:28px 0 36px}
+  .dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--acc)}
+  .dots i.f{background:var(--acc)}
+  .dots.shake{animation:sh .35s}
+  @keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+  .pad{display:grid;grid-template-columns:repeat(3,76px);gap:16px}
+  .pad button{height:76px;border-radius:50%;border:0;background:var(--card);color:var(--text);font-size:28px}
+  .pad button.blank{background:none}
+
+  /* Всплывающее меню и уведомление */
+  .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;z-index:10}
+  .sheet{width:100%;background:var(--card2);border-radius:18px 18px 0 0;
+    padding:16px 16px calc(env(safe-area-inset-bottom) + 16px)}
+  .sheet .t{color:var(--muted);font-size:13px;margin-bottom:12px;word-break:break-word}
+  .sheet .btn{margin-top:8px}
+  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translateX(-50%);
+    background:var(--acc);color:var(--acc-ink);padding:10px 18px;border-radius:20px;font-weight:600;z-index:20}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ================================================================
+//  ZE Flow — учёт операций по проектам. Все данные хранятся
+//  только на этом устройстве (localStorage), в интернет не уходят.
+// ================================================================
+
+// ----- Стартовые списки (дополняются прямо в приложении) -----
+const DEFAULT_LISTS = {
+  projects: ['ZE','ZEdecor','ZM','Свое','Своего','ВГподотчет','ДДДпроект','ДДДкомп','МЗСкомп',
+    'КУГпроект','КУГкомп','КВРкомп','КВРмеб','КНС2комп','КНС2обсл','КРС2комп','КРС2меб',
+    'КВПкомп','КВПмеб','КЛМкомп','КТМкомп'],
+  sections: ['Наличные','Сбер карта','Альфа карта','Альфа безнал','Абсолют безнал','Озон карта'],
+  actions: ['внесение','получение'],
+  banks: ['Сбер','Альфа','Т банк','ВТБ'],
+  suppliers: ['Алексей мебель','Пономарев АП','Фарход ФШ','Фарида','Николай Нигматов','Азиз',
+    'Виталий ВГ','Оля Буканова','Даниленко СД'],
+  services: ['парковка','доставка','транспорт','представительские','офис'],
+  currencies: ['руб','доллары']
+};
+
+// ----- Хранилище -----
+const KEY = 'zeflow_db_v1';
+let db = load();
+
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if(d && Array.isArray(d.ops)){
+      d.lists = d.lists || {};
+      // если в новой версии появился список, которого нет в старых данных — добавляем
+      for(const k in DEFAULT_LISTS) if(!d.lists[k]) d.lists[k] = [...DEFAULT_LISTS[k]];
+      return d;
+    }
+  }catch(e){}
+  return { ops:[], lists:JSON.parse(JSON.stringify(DEFAULT_LISTS)), pin:null, lastBackup:null };
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
+
+// просим iOS не очищать данные
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist();
+
+// ----- Тема: 'auto' (как в iPhone), 'light' или 'dark' -----
+const sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(){
+  const t = db.theme || 'auto';
+  const dark = t === 'dark' || (t === 'auto' && sysDark.matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  // цвет полосы статуса iPhone
+  document.querySelector('meta[name=theme-color]').content = dark ? '#0f0f10' : '#f6f3ee';
+}
+applyTheme();
+// если тема «Авто» — следим за переключением в iPhone
+sysDark.addEventListener('change', applyTheme);
+
+// ----- Утилиты -----
+const $app = document.getElementById('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+// навесить обработчик на элементы внутри экрана
+function on(sel, fn, ev='click'){ $app.querySelectorAll(sel).forEach(el => el.addEventListener(ev, e => fn(el, e))); }
+
+// дата в формате ГГГГ-ММ-ДД (со сдвигом в днях)
+function isoDay(offset=0, base=new Date()){
+  const d = new Date(base); d.setDate(d.getDate()+offset);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// "2026-10-24" -> "24 10 26" (как в отчёте мужа)
+function fmtDate(iso){ const [y,m,d] = iso.split('-'); return `${d} ${m} ${y.slice(2)}`; }
+// подпись дня в списке
+function humanDate(iso){
+  if(iso === isoDay(0)) return 'Сегодня';
+  if(iso === isoDay(-1)) return 'Вчера';
+  const [y,m,d] = iso.split('-'); return `${d}.${m}.${y}`;
+}
+// 20000 -> "20 000", 1500.5 -> "1 500,5"
+function fmtAmount(n){
+  const [i,f] = (Math.round(n*100)/100).toString().split('.');
+  return i.replace(/\B(?=(\d{3})+(?!\d))/g,' ') + (f ? ','+f : '');
+}
+
+// ===== Главное: строка отчёта в формате мужа =====
+// 24 10 26_КВРмеб_Сбер карта_внесение_на Т банк_Алексей мебель_монтаж ср и чт - 20 000 =
+function lineOf(o){
+  const p = [fmtDate(o.date), o.project, o.section, o.action];
+  if(o.bank) p.push('на ' + o.bank);   // банк — только если был выбран
+  p.push(o.party);
+  if(o.note) p.push(o.note);           // описание — если не пропущено
+  const cur = (o.cur && o.cur !== 'руб') ? ' ' + o.cur : '';  // рубли не пишем, как в примере
+  return p.join('_') + ' - ' + fmtAmount(o.amount) + cur + ' =';
+}
+
+// операции, отсортированные по дате
+const byDate = (a,b) => a.date.localeCompare(b.date) || a.created - b.created;
+
+// уведомление сверху
+function toast(msg){
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 1600);
+}
+
+// нижнее меню с кнопками; возвращает выбранный индекс или -1
+function sheet(title, buttons){
+  return new Promise(res => {
+    const ov = document.createElement('div'); ov.className='ov';
+    ov.innerHTML = `<div class="sheet"><div class="t">${esc(title)}</div>` +
+      buttons.map((b,i)=>`<button class="btn ${b.cls||''}" data-i="${i}">${esc(b.text)}</button>`).join('') +
+      `<button class="btn ghost" data-i="-1">Отмена</button></div>`;
+    ov.addEventListener('click', e => {
+      const b = e.target.closest('[data-i]');
+      if(b || e.target === ov){ ov.remove(); res(b ? +b.dataset.i : -1); }
+    });
+    document.body.appendChild(ov);
+  });
+}
+
+// сохранить файл: на iPhone открывается меню «Поделиться» (Файлы, Telegram, почта)
+async function shareFile(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const file = new File([blob], filename, {type:mime});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file]}); return true; }
+    catch(e){ if(e.name === 'AbortError') return false; }
+  }
+  // запасной вариант — обычное скачивание
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  return true;
+}
+
+// хэш PIN-кода (сам PIN нигде не хранится)
+async function hash(s){
+  if(window.crypto && crypto.subtle){
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('zeflow:'+s));
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  let h = 0; for(const c of s) h = (h*31 + c.charCodeAt(0))|0; return 'x'+h;
+}
+
+// ================================================================
+//  Навигация между экранами
+// ================================================================
+let view = 'home';
+let unlocked = !db.pin;
+let hiddenAt = 0;
+
+function go(v){ view = v; window.scrollTo(0,0); render(); }
+function render(){
+  if(db.pin && !unlocked) return viewLock();
+  ({home:viewHome, wizard:viewWizard, report:viewReport, settings:viewSettings})[view]();
+}
+
+// блокировка, если приложение было свёрнуто дольше минуты
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) hiddenAt = Date.now();
+  else if(db.pin && Date.now() - hiddenAt > 60000){ unlocked = false; render(); }
+});
+
+// ================================================================
+//  Экран PIN
+// ================================================================
+let pinInput = '';
+function viewLock(){
+  $app.innerHTML = `<div class="lock">
+    <div class="brand">ZE <span>Flow</span></div>
+    <div class="dots" id="dots">${[0,1,2,3].map(i=>`<i class="${i<pinInput.length?'f':''}"></i>`).join('')}</div>
+    <div class="pad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-n="${n}">${n}</button>`).join('')}
+      <button class="blank"></button><button data-n="0">0</button><button class="blank" data-back>⌫</button>
+    </div></div>`;
+  on('[data-n]', async b => {
+    if(pinInput.length >= 4) return;
+    pinInput += b.dataset.n; viewLock();
+    if(pinInput.length === 4){
+      if(await hash(pinInput) === db.pin){ unlocked = true; pinInput=''; render(); }
+      else { pinInput=''; viewLock(); document.getElementById('dots').classList.add('shake'); }
+    }
+  });
+  on('[data-back]', () => { pinInput = pinInput.slice(0,-1); viewLock(); });
+}
+
+// ================================================================
+//  Главный экран: последние операции
+// ================================================================
+function viewHome(){
+  const ops = [...db.ops].sort(byDate).reverse().slice(0, 80);
+  // напоминание о резервной копии раз в 7 дней
+  const needBackup = db.ops.length && (!db.lastBackup || Date.now() - db.lastBackup > 7*864e5);
+
+  let list = '', last = '';
+  for(const o of ops){
+    if(o.date !== last){ list += `<div class="day">${humanDate(o.date)}</div>`; last = o.date; }
+    list += `<button class="op" data-id="${o.id}">
+      <span class="op-top"><span>${esc(o.project)} · ${esc(o.action)}</span>
+      <span>${fmtAmount(o.amount)} ${o.cur==='руб'?'₽':esc(o.cur)}</span></span>
+      <span class="op-line">${esc(lineOf(o))}</span></button>`;
+  }
+
+  $app.innerHTML = `
+    <div class="top"><div class="brand">ZE <span>Flow</span></div>
+      <div><button class="iconbtn acc" data-go="report">Отчёт</button>
+      <button class="iconbtn" data-go="settings">Настройки</button></div></div>
+    ${needBackup ? `<button class="banner" data-go="settings">Давно не было резервной копии. Сделать →</button>` : ''}
+    ${list || `<div class="empty">Пока пусто.<br>Нажми «Новая операция».</div>`}
+    <div class="spacer"></div>
+    <button class="btn fab" id="new">+ Новая операция</button>`;
+
+  on('[data-go]', b => go(b.dataset.go));
+  on('#new', () => startWizard());
+  // нажатие на операцию: изменить / удалить
+  on('.op', async b => {
+    const o = db.ops.find(x => x.id === b.dataset.id);
+    const i = await sheet(lineOf(o), [{text:'Изменить', cls:'ghost'}, {text:'Удалить', cls:'danger'}]);
+    if(i === 0) startWizard(o);
+    if(i === 1 && confirm('Удалить операцию?')){
+      db.ops = db.ops.filter(x => x.id !== o.id); save(); render();
+    }
+  });
+}
+
+// ================================================================
+//  Мастер ввода операции (шаг за шагом)
+// ================================================================
+const STEPS = [
+  {key:'project', title:'Проект',         type:'list', list:'projects', add:'Новый проект'},
+  {key:'section', title:'Раздел отчёта',  type:'list', list:'sections', add:'Новый раздел'},
+  {key:'action',  title:'Действие',       type:'list', list:'actions',  add:'Новое действие'},
+  // шаг «Банк» появляется, только если выбрана карта или безнал
+  {key:'bank',    title:'Перевод на банк', type:'list', list:'banks', add:'Другой банк', skip:true,
+    when: d => /карта|безнал/i.test(d.section || '')},
+  {key:'party',   title:'С кем операция', type:'party'},
+  {key:'note',    title:'Описание',       type:'note'},
+  {key:'amount',  title:'Сумма и дата',   type:'amount'}
+];
+const visibleSteps = () => STEPS.filter(s => !s.when || s.when(draft));
+
+let draft = {}, curKey = 'project', editingId = null, listEdit = false, partySub = null;
+
+function startWizard(op){
+  editingId = op ? op.id : null;
+  draft = op ? {...op} : {project:'', section:'', action:'', bank:'', party:'', note:'', amount:'', cur:'руб', date:isoDay(0)};
+  curKey = op ? 'amount' : 'project';   // при правке сразу открываем последний шаг
+  listEdit = false; partySub = null;
+  go('wizard');
+}
+function stepMove(dir){
+  const vs = visibleSteps(), i = vs.findIndex(s => s.key === curKey);
+  listEdit = false; partySub = null;
+  if(i + dir < 0) return go('home');
+  curKey = vs[i + dir].key; window.scrollTo(0,0); render();
+}
+
+function viewWizard(){
+  const vs = visibleSteps(), i = vs.findIndex(s => s.key === curKey), s = vs[i];
+  // что уже выбрано — показываем мелко сверху
+  const crumbs = ['project','section','action','bank','party']
+    .filter(k => draft[k] && vs.findIndex(x=>x.key===k) < i).map(k => esc(draft[k])).join(' · ');
+
+  $app.innerHTML = `
+    <div class="top"><button class="iconbtn acc" id="back">‹ Назад</button>
+      <span class="muted">${i+1} / ${vs.length}</span>
+      ${s.type==='list' ? `<button class="iconbtn ${listEdit?'acc':''}" id="edit">${listEdit?'Готово':'Правка'}</button>` : '<span style="width:60px"></span>'}</div>
+    <div class="bar"><i style="width:${(i+1)/vs.length*100}%"></i></div>
+    <div class="step-title">${s.title}</div>
+    <div class="crumbs">${crumbs}</div>
+    <div id="body"></div>`;
+
+  on('#back', () => stepMove(-1));
+  on('#edit', () => { listEdit = !listEdit; render(); });
+
+  const body = document.getElementById('body');
+  if(s.type === 'list')   stepList(body, s);
+  if(s.type === 'party')  stepParty(body);
+  if(s.type === 'note')   stepNote(body);
+  if(s.type === 'amount') stepAmount(body);
+}
+
+// универсальная сетка кнопок из списка + «иное…» для добавления
+function listGrid(listName, selected, addLabel){
+  return `<div class="grid">` +
+    db.lists[listName].map((v,i) =>
+      `<button class="chip ${v===selected?'on':''} ${listEdit?'del':''}" data-i="${i}">${listEdit?'✕ ':''}${esc(v)}</button>`).join('') +
+    (listEdit ? '' : `<button class="chip add" data-add>иное…</button>`) + `</div>`;
+}
+// навешиваем клики на сетку: выбор, удаление (в режиме правки), добавление
+function bindGrid(body, listName, addLabel, onPick){
+  body.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => {
+    const v = db.lists[listName][+b.dataset.i];
+    if(listEdit){
+      if(confirm(`Убрать «${v}» из списка?\n(старые записи не изменятся)`)){
+        db.lists[listName].splice(+b.dataset.i, 1); save(); render();
+      }
+    } else onPick(v);
+  }));
+  const add = body.querySelector('[data-add]');
+  if(add) add.addEventListener('click', () => {
+    const v = (prompt(addLabel + ':') || '').trim().replace(/_/g,' '); // "_" — разделитель в отчёте
+    if(!v) return;
+    if(!db.lists[listName].includes(v)){ db.lists[listName].push(v); save(); }
+    onPick(v);
+  });
+}
+
+// шаг-список: проект, раздел, действие, банк
+function stepList(body, s){
+  body.innerHTML = listGrid(s.list, draft[s.key]) +
+    (s.skip && !listEdit ? `<button class="btn ghost mt2" id="skip">Пропустить</button>` : '');
+  bindGrid(body, s.list, s.add, v => { draft[s.key] = v; stepMove(1); });
+  const sk = body.querySelector('#skip');
+  if(sk) sk.addEventListener('click', () => { draft[s.key] = ''; stepMove(1); });
+}
+
+// шаг «С кем»: домашняя / поставщик / услуга / иное
+function stepParty(body){
+  if(partySub){
+    // открыт подсписок поставщиков или услуг
+    const name = partySub === 'suppliers' ? 'Поставщик' : 'Услуга';
+    body.innerHTML = `<div class="label">${name}</div>` + listGrid(partySub, draft.party) +
+      `<div class="row mt2"><button class="btn ghost" id="up">‹ К выбору</button>
+       <button class="btn ghost" id="ed">${listEdit?'Готово':'Правка списка'}</button></div>`;
+    bindGrid(body, partySub, 'Добавить', v => { draft.party = v; stepMove(1); });
+    body.querySelector('#up').addEventListener('click', () => { partySub = null; listEdit = false; render(); });
+    body.querySelector('#ed').addEventListener('click', () => { listEdit = !listEdit; render(); });
+    return;
+  }
+  body.innerHTML = `<div class="grid">
+      <button class="chip ${draft.party==='На домашнюю'?'on':''}" id="home">На домашнюю</button>
+      <button class="chip" id="sup">Поставщик ›</button>
+      <button class="chip" id="srv">Услуга ›</button>
+      <button class="chip add" id="oth">Иное…</button></div>
+    ${draft.party ? `<div class="muted mt">Сейчас: ${esc(draft.party)}</div>` : ''}`;
+  body.querySelector('#home').addEventListener('click', () => { draft.party = 'На домашнюю'; stepMove(1); });
+  body.querySelector('#sup').addEventListener('click', () => { partySub = 'suppliers'; render(); });
+  body.querySelector('#srv').addEventListener('click', () => { partySub = 'services'; render(); });
+  body.querySelector('#oth').addEventListener('click', () => {
+    const v = (prompt('С кем операция:', draft.party) || '').trim().replace(/_/g,' ');
+    if(v){ draft.party = v; stepMove(1); }
+  });
+}
+
+// шаг «Описание» с подсказками из прошлых записей
+function stepNote(body){
+  // уникальные описания, самые свежие первыми
+  const all = [...new Set([...db.ops].sort(byDate).reverse().map(o => o.note).filter(Boolean))];
+  body.innerHTML = `<input class="field" id="note" placeholder="За что…" autocomplete="off" value="${esc(draft.note)}">
+    <div class="sugg" id="sugg"></div>
+    <div class="row mt2"><button class="btn ghost" id="skip">Пропустить</button>
+    <button class="btn" id="next">Далее</button></div>`;
+  const inp = body.querySelector('#note'), sugg = body.querySelector('#sugg');
+  const next = () => { draft.note = inp.value.trim().replace(/_/g,' '); stepMove(1); };
+  const showSugg = () => {
+    const q = inp.value.trim().toLowerCase();
+    const list = all.filter(n => !q || n.toLowerCase().includes(q)).slice(0, 10);
+    sugg.innerHTML = list.map(n => `<button class="chip sm">${esc(n)}</button>`).join('');
+    sugg.querySelectorAll('button').forEach((b,i) => b.addEventListener('click', () => { inp.value = list[i]; next(); }));
+  };
+  inp.addEventListener('input', showSugg);
+  inp.addEventListener('keydown', e => { if(e.key === 'Enter') next(); });
+  body.querySelector('#skip').addEventListener('click', () => { draft.note = ''; stepMove(1); });
+  body.querySelector('#next').addEventListener('click', next);
+  showSugg();
+}
+
+// последний шаг: сумма, валюта, дата, сохранение
+function stepAmount(body){
+  const dayBtns = [['Сегодня',0],['Вчера',-1],['Позавчера',-2]];
+  body.innerHTML = `
+    <input class="field big" id="amt" inputmode="decimal" placeholder="0" value="${esc(draft.amount)}">
+    <div class="label">Валюта</div>
+    <div class="grid three">${db.lists.currencies.map(c =>
+      `<button class="chip sm ${draft.cur===c?'on':''}" data-cur="${esc(c)}">${esc(c)}</button>`).join('')}
+      <button class="chip sm add" id="cur-add">иное…</button></div>
+    <div class="label">Дата</div>
+    <input class="field" type="date" id="dt" value="${draft.date}">
+    <div class="grid three mt">${dayBtns.map(([t,o]) =>
+      `<button class="chip sm ${draft.date===isoDay(o)?'on':''}" data-day="${o}">${t}</button>`).join('')}</div>
+    <div class="preview" id="pv"></div>
+    <button class="btn mt" id="save">${editingId ? 'Сохранить изменения' : 'Сохранить'}</button>`;
+
+  const amt = body.querySelector('#amt'), dt = body.querySelector('#dt'), pv = body.querySelector('#pv');
+  const num = () => parseFloat(String(amt.value).replace(/\s/g,'').replace(',', '.'));
+  const upd = () => { draft.amount = amt.value; pv.textContent = lineOf({...draft, amount: num() || 0}); };
+  amt.addEventListener('input', upd);
+  dt.addEventListener('change', () => { if(dt.value){ draft.date = dt.value; render(); } });
+  body.querySelectorAll('[data-cur]').forEach(b => b.addEventListener('click', () => { draft.cur = b.dataset.cur; render(); }));
+  body.querySelectorAll('[data-day]').forEach(b => b.addEventListener('click', () => { draft.date = isoDay(+b.dataset.day); render(); }));
+  body.querySelector('#cur-add').addEventListener('click', () => {
+    const v = (prompt('Валюта:') || '').trim().replace(/_/g,' ');
+    if(!v) return;
+    if(!db.lists.currencies.includes(v)){ db.lists.currencies.push(v); save(); }
+    draft.cur = v; render();
+  });
+  body.querySelector('#save').addEventListener('click', () => {
+    const n = num();
+    if(!n || n <= 0){ amt.focus(); return toast('Введи сумму'); }
+    // если раздел сменили на «Наличные» — банк убираем
+    if(!STEPS.find(s => s.key==='bank').when(draft)) draft.bank = '';
+    const op = {...draft, amount: Math.round(n*100)/100};
+    if(editingId){ db.ops = db.ops.map(o => o.id === editingId ? op : o); }
+    else { op.id = uid(); op.created = Date.now(); db.ops.push(op); }
+    save(); toast('Сохранено'); go('home');
+  });
+  upd();
+  if(!editingId) setTimeout(() => amt.focus(), 50);
+}
+
+// ================================================================
+//  Отчёт за период → TXT
+// ================================================================
+let repFrom = null, repTo = null;
+function viewReport(){
+  const now = new Date();
+  if(!repFrom){ repFrom = isoDay(0, new Date(now.getFullYear(), now.getMonth(), 1)); repTo = isoDay(0); }
+  // быстрые периоды
+  const presets = {
+    'Этот месяц':    [isoDay(0, new Date(now.getFullYear(), now.getMonth(), 1)), isoDay(0)],
+    'Прошлый месяц': [isoDay(0, new Date(now.getFullYear(), now.getMonth()-1, 1)), isoDay(0, new Date(now.getFullYear(), now.getMonth(), 0))],
+    '7 дней':        [isoDay(-6), isoDay(0)],
+    'Всё время':     ['2000-01-01', isoDay(0)]
+  };
+  const ops = db.ops.filter(o => o.date >= repFrom && o.date <= repTo).sort(byDate);
+  const text = ops.map(lineOf).join('\n');
+
+  $app.innerHTML = `
+    <div class="top"><button class="iconbtn acc" id="back">‹ Назад</button><span class="muted">Отчёт</span><span style="width:60px"></span></div>
+    <div class="grid">${Object.keys(presets).map(k =>
+      `<button class="chip sm ${presets[k][0]===repFrom&&presets[k][1]===repTo?'on':''}" data-p="${k}">${k}</button>`).join('')}</div>
+    <div class="row mt">
+      <div><div class="label">С</div><input class="field" type="date" id="from" value="${repFrom}"></div>
+      <div><div class="label">По</div><input class="field" type="date" id="to" value="${repTo}"></div></div>
+    <div class="label">Операций: ${ops.length}</div>
+    <pre class="out">${ops.length ? esc(text) : 'За этот период записей нет'}</pre>
+    <div class="row mt"><button class="btn ghost" id="copy" ${ops.length?'':'disabled'}>Копировать</button>
+    <button class="btn" id="txt" ${ops.length?'':'disabled'}>Выгрузить TXT</button></div>`;
+
+  on('#back', () => go('home'));
+  on('[data-p]', b => { [repFrom, repTo] = presets[b.dataset.p]; render(); });
+  on('#from', el => { if(el.value){ repFrom = el.value; render(); } }, 'change');
+  on('#to',   el => { if(el.value){ repTo = el.value; render(); } }, 'change');
+  on('#copy', async () => { try{ await navigator.clipboard.writeText(text); toast('Скопировано'); }catch(e){ toast('Не удалось скопировать'); } });
+  on('#txt', () => shareFile('\ufeff' + text + '\n', `ZE_Flow_${repFrom}_${repTo}.txt`, 'text/plain'));
+}
+
+// ================================================================
+//  Настройки: PIN, резервная копия, восстановление
+// ================================================================
+function viewSettings(){
+  $app.innerHTML = `
+    <div class="top"><button class="iconbtn acc" id="back">‹ Назад</button><span class="muted">Настройки</span><span style="width:60px"></span></div>
+
+    <div class="label">Оформление</div>
+    <div class="grid three">${[['auto','Авто'],['light','Светлая'],['dark','Тёмная']].map(([k,t]) =>
+      `<button class="chip sm ${(db.theme||'auto')===k?'on':''}" data-theme="${k}">${t}</button>`).join('')}</div>
+
+    <div class="label">Защита</div>
+    <button class="btn ghost" id="pin">${db.pin ? 'Сменить PIN' : 'Установить PIN-код'}</button>
+    ${db.pin ? `<button class="btn danger mt" id="nopin">Отключить PIN</button>` : ''}
+
+    <div class="label">Резервная копия</div>
+    <div class="muted">Данные живут только в этом телефоне. Сохраняй копию раз в неделю в Файлы или Telegram.
+      ${db.lastBackup ? '<br>Последняя: ' + new Date(db.lastBackup).toLocaleDateString('ru-RU') : ''}</div>
+    <button class="btn mt" id="bak">Сохранить копию</button>
+    <button class="btn ghost mt" id="res">Восстановить из копии</button>
+    <input type="file" id="file" accept=".json,application/json" hidden>
+
+    <div class="label">О приложении</div>
+    <div class="muted">ZE Flow · операций: ${db.ops.length}<br>Работает без интернета.</div>`;
+
+  on('#back', () => go('home'));
+  on('[data-theme]', b => { db.theme = b.dataset.theme; save(); applyTheme(); render(); });
+  on('#pin', async () => {
+    const p = (prompt('Новый PIN (4 цифры):') || '').trim();
+    if(!/^\d{4}$/.test(p)) return p && toast('Нужно ровно 4 цифры');
+    if(prompt('Повтори PIN:') !== p) return toast('PIN не совпал');
+    db.pin = await hash(p); save(); toast('PIN установлен'); render();
+  });
+  on('#nopin', () => { if(confirm('Отключить PIN?')){ db.pin = null; save(); render(); } });
+  on('#bak', async () => {
+    const ok = await shareFile(JSON.stringify(db), `ZE_Flow_backup_${isoDay(0)}.json`, 'application/json');
+    if(ok){ db.lastBackup = Date.now(); save(); render(); }
+  });
+  on('#res', () => document.getElementById('file').click());
+  on('#file', el => {
+    const f = el.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try{
+        const d = JSON.parse(r.result);
+        if(!Array.isArray(d.ops)) throw 0;
+        if(!confirm(`В копии ${d.ops.length} операций. Заменить текущие данные?`)) return;
+        localStorage.setItem(KEY, JSON.stringify(d)); db = load(); applyTheme(); unlocked = true;
+        toast('Восстановлено'); go('home');
+      }catch(e){ toast('Файл не подходит'); }
+    };
+    r.readAsText(f);
+  }, 'change');
+}
+
+// ----- Запуск -----
+render();
+// офлайн-режим: регистрируем service worker
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
